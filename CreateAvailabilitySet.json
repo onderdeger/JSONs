@@ -1,0 +1,29 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "availabilitySets_mrpiclavasprd_name": {
+            "defaultValue": "mrpiclavasprd",
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+          "sku": {
+            "name": "Aligned"
+          },
+            "name": "[parameters('availabilitySets_mrpiclavasprd_name')]",
+            "apiVersion": "2017-12-01",
+            "location": "northeurope",
+            "scale": null,
+            "properties": {
+                "platformUpdateDomainCount": 2,
+                "platformFaultDomainCount": 2,
+                "virtualMachines": []
+            },
+            "dependsOn": []
+        }
+    ]
+}

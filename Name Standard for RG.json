@@ -1,0 +1,96 @@
+{ 
+  "mode": "all", 
+  "policyRule": { 
+    "if": { 
+      "allOf": [ 
+        { 
+          "field": "type", 
+          "equals": "Microsoft.Resources/subscriptions/resourceGroups" 
+        }, 
+        { 
+          "not": { 
+            "field": "name", 
+            "match": "[parameters('namePattern1')]" 
+          } 
+        }, 
+        { 
+            "not": { 
+              "field": "name", 
+              "match": "[parameters('namePattern2')]" 
+            } 
+          }, 
+          { 
+            "not": { 
+              "field": "name", 
+              "match": "[parameters('namePattern3')]" 
+            } 
+          }, 
+          { 
+            "not": { 
+              "field": "name", 
+              "match": "[parameters('namePattern4')]" 
+            } 
+          }, 
+        { 
+          "not": { 
+            "field": "name", 
+            "match": "[parameters('namePattern5')]" 
+          } 
+        }, 
+        { 
+          "not": { 
+            "field": "name", 
+            "match": "[parameters('namePattern6')]" 
+          } 
+        } 
+      ] 
+    }, 
+    "then": { 
+      "effect": "deny" 
+    } 
+  }, 
+  "parameters": { 
+    "namePattern1": { 
+      "type": "String", 
+      "metadata": { 
+        "displayName": "namePattern1", 
+        "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+      } 
+    }, 
+    "namePattern2": { 
+      "type": "String", 
+      "metadata": { 
+        "displayName": "namePattern2", 
+        "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+      } 
+    }, 
+    "namePattern3": { 
+        "type": "String", 
+        "metadata": { 
+          "displayName": "namePattern3", 
+          "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+        } 
+      }, 
+      "namePattern4": { 
+        "type": "String", 
+        "metadata": { 
+          "displayName": "namePattern4", 
+          "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+        } 
+      }, 
+      "namePattern5": { 
+        "type": "String", 
+        "metadata": { 
+          "displayName": "namePattern5", 
+          "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+        } 
+      }, 
+    "namePattern6": { 
+      "type": "String", 
+      "metadata": { 
+        "displayName": "namePattern6", 
+        "description": "Pattern to use for names. Can include ? for letters and # for numbers." 
+      } 
+    } 
+  } 
+} 
