@@ -17,7 +17,7 @@
 },
 "location": {
     "type": "string",
-    "defaultValue": "[resourseGroup().location]",
+    "defaultValue": "[resourceGroup().location]",
     "metadata": {
         "description": "Location for all resource."
     }
@@ -31,7 +31,7 @@
         "apiVersion": "2016-01-01",
         "type": "Microsoft.Storage/storageAccounts",
         "name": "[concat(copyIndex(),'storage', uniqueString(resourceGroup().id))]",
-        "location": "[resourseGroup().location]",
+        "location": "[resourceGroup().location]",
         "sku":{
             "name":"Standard_LRS"
         },
