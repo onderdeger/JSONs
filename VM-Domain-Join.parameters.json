@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "existingVNETName": {
+      "value": "sss-vnet"
+    },
+    "existingSubnetName": {
+      "value": "INT"
+    },
+    "existingVNETRG":{
+        "value": "net-sss-rg"
+    },
+    "vmSize": {
+        "value": "Standard_D2_V3"
+      },
+      "dnsLabelPrefix": {
+        "value": "TestVM"
+      },
+    "domainToJoin": {
+      "value": "renre.com"
+    },
+    "domainUsername": {
+      "value": "_srvazurecompadjoin@renre.com"
+    },
+    "domainPassword": {
+        "reference": {
+            "keyVault": {
+              "id": "/subscriptions/ef74b95f-e893-4be4-8aee-1ec07554666e/resourceGroups/gov-sss-rg/providers/Microsoft.KeyVault/vaults/kva-sss-01"
+            },
+            "secretName": "DomainPassword"
+          }
+      },
+    "domainJoinOptions": {
+      "value": 3
+    },
+    "vmAdminUsername": {
+      "value": "adminrenre"
+    },
+    "vmAdminPassword": {
+        "reference": {
+            "keyVault": {
+              "id": "/subscriptions/ef74b95f-e893-4be4-8aee-1ec07554666e/resourceGroups/gov-sss-rg/providers/Microsoft.KeyVault/vaults/kva-sss-01"
+            },
+            "secretName": "LocalAdmin"
+          }
+      }
+  }
+}
