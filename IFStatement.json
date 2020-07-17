@@ -1,0 +1,243 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "NetworkInterfaceType": {
+            "type": "string",
+            "metadata": {
+                "description": "Whether to have a public or private NIC"
+            },
+            "allowedValues": [
+                "Public",
+                "Private"
+            ]
+        },
+        "IPAllocationMethod": {
+            "type": "string",
+            "defaultValue": "Dynamic",
+            "allowedValues": [
+                "Dynamic",
+                "Static"
+            ]
+        },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "windowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2016-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "2016-Nano-Server",
+        "2016-Datacenter-with-Containers",
+        "2016-Datacenter",
+        "2019-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+          "allowedValues": [
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_D32s_v3"
+      ],
+      "metadata": {
+        "description": "Size of the virtual machine."
+      }
+      },
+       "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+        }
+         }
+    },
+    "variables": {
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'testvm')]",
+        "NetworkName": "Onder-VNET",
+        "addressPrefix": "10.0.0.0/16",
+        "SubnetName": "Onder-subnet1",
+        "subnetPrefix": "10.0.0.0/24",
+        "NICName": "ondernic1",
+        "networkSecurityGroupName": "default-NSG",
+        "vmName": "OnderVM01",
+        "PublicIPName": "[concat(variables('NICName'),'-pip')]",
+        "publicIP1": {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses',Concat(variables('NICName'),'-pip'))]"
+        }
+    },
+    "resources": [
+           {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage",
+      "properties": {}
+    },
+        {
+      "comments":  "Default Network Security Group for template",
+      "type":  "Microsoft.Network/networkSecurityGroups",
+      "apiVersion":  "2019-08-01",
+      "name":  "[variables('networkSecurityGroupName')]",
+      "location":  "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name":  "default-allow-3389",
+            "properties": {
+              "priority":  1000,
+              "access":  "Allow",
+              "direction":  "Inbound",
+              "destinationPortRange":  "3389",
+              "protocol":  "Tcp",
+              "sourcePortRange":  "*",
+              "sourceAddressPrefix":  "*",
+              "destinationAddressPrefix":  "*"
+            }
+          }
+        ]
+      }
+    },
+       {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('NetworkName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+        {
+            "apiVersion": "2020-04-01",
+            "condition": "[equals(parameters('NetworkInterfaceType'),'Public')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('PublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[Concat(variables('NICName'),'-pip')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('IPAllocationMethod')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[Concat(variables('NICName'),'-pip')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2020-04-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('NICName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('PublicIPName'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/', variables('NetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "[parameters('IPAllocationMethod')]",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('NetworkName')), '/subnets/',variables('SubnetName'))]"
+                            },
+                            "publicIPAddress": "[if(equals(parameters('NetworkInterfaceType'),'Public'), variables('publicIP1'), json('null'))]"
+                        }
+                    }
+                ]
+            }
+        },
+ {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2018-10-01",
+      "name": "[variables('vmName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "[parameters('windowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "diskSizeGB": 1023,
+              "lun": 0,
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"
+          }
+        }
+      }
+    }
+  ],
+    "outputs": {}
+ }
